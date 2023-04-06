@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Reproductor de video</title>
+  <link href="https://vjs.zencdn.net/7.16.0/video-js.css" rel="stylesheet">
+</head>
+<body>
+  <video id="video-player" class="video-js vjs-default-skin" controls preload="auto" width="640" height="264">
+    <source src="http://localhost:8000/main.m3u8" type="application/x-mpegURL">
+  </video>
+  <script src="https://vjs.zencdn.net/7.16.0/video.js"></script>
+  <script>
+    var player = videojs('video-player');
+    player.play();
+  </script>
+</body>
+</html>
