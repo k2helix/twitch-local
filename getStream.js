@@ -2,15 +2,16 @@ const fs = require('fs');
 const https = require('https');
 const { execSync } = require('child_process');
 
-setFileTree()
-setInterval(() => {
-    setFileTree()
-}, 15000)
+try {
+    setFileTree();
+} catch (error) {
+    setFileTree();
+}
 
 function setFileTree() {
     fs.rmSync("./streamsTmp", { recursive: true, force: true })
     fs.mkdirSync("./streamsTmp/", { recursive: true });
-    const streamId = process.argv[2] || 'ibai';
+    const streamId = process.argv[2] || 'illojuan';
     const ttvUrl = `https://api.ttv.lol/playlist/${streamId}.m3u8%3Facmb%3De30%253D%26allow_source%3Dtrue%26fast_bread%3Dtrue%26p%3D66925%26play_session_id%3Dc6ef2a92a27be56aa760d3bf258c2320%26player_backend%3Dmediaplayer%26playlist_include_framerate%3Dtrue%26reassignments_supported%3Dtrue%26supported_codecs%3Davc1%26transcode_mode%3Dcbr_v2%26cdm%3Dwv%26player_version%3D1.18.0`
 
     console.log("Downloading main playlist from ttv.lol...")
@@ -22,7 +23,7 @@ function setFileTree() {
     fs.readFile('./streamsTmp/mainOriginal.m3u8', 'utf-8', (err, data) => {
         if (err) throw err;
 
-        const playlistsUrls = data.match(/https?:\/\/[^\s]+/g).slice(0, 1);
+        const playlistsUrls = data.match(/https?:\/\/[^\s]+/g).slice(1, 2);
         playlistsUrls.forEach(async(plUrl, index) => {
             fs.mkdirSync(`./streamsTmp/playlist${index}`, { recursive: true });
             await https.get(plUrl, (response) => {
@@ -46,7 +47,7 @@ function setFileTree() {
                                 setTimeout(() => {
                                     console.log(`Done. Totalling an approximate of ${(totalSize / 1000000).toFixed(1)}MB`);
                                     createLocalCopy();
-                                }, 1000)
+                                }, 3000)
                             }
                         });
                     })
@@ -61,20 +62,28 @@ function createLocalCopy() {
     fs.readFile('./streamsTmp/mainOriginal.m3u8', 'utf-8', async (err, data) => {
         if (err) throw err;
 
-        const playlistsUrls = data.match(/https?:\/\/[^\s]+/g).slice(0, 1);
+        const playlistsUrls = data.match(/https?:\/\/[^\s]+/g).slice(1, 2);
         // const localPlaylists = [];
         for (let index = 0; index < playlistsUrls.length; index++) {
-            // localPlaylists.push(`http://127.0.0.1:8000/streams/playlist${index}/playlist${index}.m3u8`);
+            // localPlaylists.push(`http://192.168.1.10:8000/streams/playlist${index}/playlist${index}.m3u8`);
             
             fs.readFile(`./streamsTmp/playlist${index}/playlistOriginal${index}.m3u8`, 'utf-8', async (err, data) => {
+                if (err) throw err;
+
                 const segmentsUrls = data.match(/https?:\/\/[^\s]+/g);
                 const localSegments = [];
                 for (let segmentIndex = 0; segmentIndex < segmentsUrls.length; segmentIndex++) {
-                    localSegments.push(`http://127.0.0.1:8000/streams/playlist${index}/segment${segmentIndex}.ts`)
+                    localSegments.push(`http://192.168.1.10:8000/streams/playlist${index}/segment${segmentIndex}.ts`)
                     if(localSegments.length === segmentsUrls.length) {
                         replaceUrls(segmentsUrls, localSegments, `./streamsTmp/playlist${index}/playlistOriginal${index}.m3u8`, data)
                         fs.rmSync("./streams", { recursive: true, force: true })
                         fs.renameSync('./streamsTmp/', './streams')
+                        console.log("Done")
+                        try {
+                            setFileTree();
+                        } catch (error) {
+                            setFileTree();
+                        }
                     }
                 }
             });
@@ -82,7 +91,6 @@ function createLocalCopy() {
 
         // replaceUrls(playlistsUrls, localPlaylists, './streams/mainOriginal.m3u8', data)
     });
-    console.log("Done")
 }
 
 function replaceUrls(original, replace, file, string) {

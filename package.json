@@ -1,0 +1,12 @@
+{
+  "name": "twitch-local",
+  "version": "0.0.2",
+  "description": "Share Twitch stream over local network",
+  "main": "getStream.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "bash ./twitch.sh"
+  },
+  "author": "k2helix",
+  "license": "MIT"
+}
